@@ -71,7 +71,7 @@ The app continues to call Supabase for database, auth, storage, and realtime fro
 | Server logic (Express.js) | Migrated to AWS Lambda (API Gateway) |
 | Database (PostgreSQL) | Schema and code migrated to AWS (Aurora Serverless / DynamoDB). Existing data is NOT migrated — customers must export and import their data separately. |
 | Auth (Replit Auth) | Code migrated to AWS (Cognito). Existing user accounts are NOT migrated — customers must re-create or invite users in Cognito. |
-| Realtime (WebSockets) | Migrated to AWS (AppSync Events) |
+| Realtime (WebSockets) | Migrated to AWS (API Gateway WebSocket + DynamoDB) |
 | File storage | Migrated to AWS (S3). Existing files are NOT migrated. |
 
 Replit app infrastructure and code are migrated to AWS-native services, but existing data, user accounts, and files must be migrated separately by the customer.

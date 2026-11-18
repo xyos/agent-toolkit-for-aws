@@ -1,88 +1,79 @@
 ---
 name: aws-blocks
-description: Guides building full-stack applications with AWS Blocks — an Infrastructure-from-Code framework. Applies when creating APIs, selecting Building Blocks (KVStore, DistributedTable, Database, AuthBasic, AuthCognito, Realtime, AsyncJob, FileBucket, etc.), running local development, or deploying AWS Blocks applications. Also covers AWS Blocks topics with validated, version-specific patterns that prevent common mistakes. Triggers when user mentions AWS Blocks; project has aws-blocks/ directory; code imports @aws-blocks packages.
+description: Sets up CDK Blocks (formerly AWS Blocks) apps - scaffolds a new app, picks a starter template, or adds a Blocks backend to an existing project. Use only when the request names CDK Blocks, AWS Blocks, cdk-blocks or the @aws-blocks packages.
 ---
 
-# AWS Blocks Application Development
+# CDK Blocks (formerly AWS Blocks)
 
-> **Package naming:** All packages are published under the `@aws-blocks` scope (e.g., `@aws-blocks/core`, `@aws-blocks/blocks`, `@aws-blocks/bb-kv-store`).
+CDK Blocks is a TypeScript framework for full-stack apps on AWS: the backend lives in one `aws-blocks/` folder built from Building Blocks (`KVStore`, `DistributedTable`, `Auth`, `FileBucket`, ...), runs locally without an AWS account and deploys with the CDK.
 
-## Overview
+The packages are published as `@aws-blocks/*`. Run app tasks from the directory containing the app's `package.json`: use `<package manager> run <task>`, with the project's package manager and a task defined in `scripts`. Examples below use npm.
 
-AWS Blocks is an Infrastructure-from-Code framework where Building Blocks bundle CDK, SDK, and local mocks into a single API. It provides 18+ Building Blocks covering storage, authentication, real-time communication, background jobs, file management, AI/search, email, and observability — all working locally without AWS credentials.
+## Where to go
 
-**Key characteristics:**
+| The project | Do this |
+|---|---|
+| already has an `aws-blocks/` folder | Follow the app's `AGENTS.md` if present. For feature work, use the [docs for the installed version](#look-up-blocks-docs); don't scaffold again. |
+| is an empty directory (a new app) | [Create an app](#create-an-app) |
+| exists without Blocks (Vite, Next.js, an API, Amplify Gen 2, ...) | [references/existing-project.md](references/existing-project.md) |
 
-- One `aws-blocks/` directory defines the entire backend
-- Frontend imports are fully typed — no client generation needed
-- All Building Blocks work locally without AWS (mocks persist to `.bb-data/`)
-- Deploy ephemeral, individual testing environments with `npm run sandbox` and long-lived environments with `npm run deploy` using least-privilege credentials
+## Create an app
 
-## Scaffolding a New Project
-
-```bash
-npx @aws-blocks/create-blocks-app my-app
-cd my-app
-```
-
-### To add AWS Blocks to an existing project:
+One command scaffolds the app and installs its dependencies. With `--yes` it never prompts:
 
 ```bash
-npx @aws-blocks/create-blocks-app .
+npx --yes @aws-blocks/create-blocks-app <directory> --template <template> --yes
 ```
 
-This detects the existing project and adds an `aws-blocks/` workspace alongside your code.
+`<directory>` is `.` for the current directory, which must be empty (`.git` and editor settings are fine).
 
-### To add AWS Blocks to an Amplify Gen 2 project:
+Wait for the scaffolder to exit successfully before running app tasks. npm may print progress during `Installing dependencies...`; the scaffolder prints `✓ Blocks app created!` followed by next steps. If the install is still running, you can read the generated files while you wait.
+
+Choose a template listed by the scaffolder you are using (`npx --yes @aws-blocks/create-blocks-app --help`). These are fresh-app choices in `@aws-blocks/create-blocks-app` 0.4.0:
+
+| Template | What you get |
+|---|---|
+| `bare` | Vite frontend and one `greet()` API method. The smallest app; start here when the features are yours to write |
+| `backend` | Backend only (API and CDK app), no frontend |
+| `api-only` | Backend only, with a public health check and sign-in-gated CRUD as a sample, for mobile, CLI or third-party clients |
+| `react` | Vite + React 19 todo app with sign-in, `DistributedTable` and realtime |
+| `nextjs` | Next.js 16 App Router; Server and Client Components call the backend |
+| `sql` | PostgreSQL backend (`Database`: migrations, foreign keys, transactions) |
+| `auth-cognito` | Vite frontend with Cognito passwordless email sign-in |
+| `demo` | Larger sample with sign-in, `KVStore` and a priority-sorted todo list |
+| `default` | Used without `--template`: Vite + lit-html with sign-in, `DistributedTable` and realtime |
+
+Use `auth`, `agent`, `cron` or `observability` only if the scaffolder lists it; 0.4.0 does not. If your code imports `zod`, check `package.json` and add it as a direct dependency if missing (`npm install zod` with npm).
+
+## After scaffolding
+
+1. Read the generated `AGENTS.md` in full before writing code. Then read `package.json`, `aws-blocks/index.ts` and `test/e2e.test.ts` for the tasks, API and tests you will extend.
+2. For a local check, run the template's test and build tasks if defined (typically `npm run test:e2e` and `npm run build`). The scaffolded e2e test starts a local server if needed. Start the app's `dev` task separately only if you need a running server.
+
+## Look up Blocks docs
+
+With `@aws-blocks/blocks` 0.9.0, or whenever the app has no Blocks docs task, read `node_modules/@aws-blocks/blocks/docs/README.md` for the guide and catalog. Follow it to `docs/<block-folder>/README.md` or `API.md` in the same package. No CLI installation is needed.
+
+If the installed version supports docs tasks, check their names in the app's `package.json`. Use the examples below only for the corresponding Blocks scripts; an existing project can assign a different name such as `blocks:docs` to preserve its own `docs` script.
 
 ```bash
-npx @aws-blocks/create-blocks-app .
+npm run docs Auth.protect
+npm run docs:api KVStore
+npm run docs:search "partition key"
+npm run docs -- KVStore --section query
 ```
 
-When the CLI detects `amplify/backend.ts`, it automatically integrates AWS Blocks with your Amplify backend.
-
-### With a specific template:
+Use positional names and search terms. With npm, put Blocks flags after `--`. For versions that select output by stdout, structured tasks (including docs) produce text in a terminal and JSON when piped or captured:
 
 ```bash
-npx @aws-blocks/create-blocks-app my-app --template demo
-cd my-app
+npm run -s docs Auth.protect | jq '{name, kind}'
+npm run -s docs -- KVStore --output text
 ```
 
-### Available Templates
+`-s` suppresses npm's banner, not Blocks output. The second command requests Markdown even when an agent captures stdout. Streaming tasks such as `dev` write logs, not a JSON document.
 
-| Template | Description |
-|----------|-------------|
-| `default` | Vite + lit-html starter app with basic authentication, data persistence, and realtime to help demonstrate basic app architecture and patterns (used when --template is omitted) |
-| `bare` | Vite + lit-html starter with a single "hello world" API method and a bare frontend |
-| `react` | React + Vite starter with a single API endpoint and typed React frontend |
-| `backend` | Backend-only — no frontend, just the AWS Blocks API with a single endpoint |
-| `demo` | Todo app with AuthBasic, KVStore, DistributedTable, Zod schemas, indexes, and auth-protected CRUD |
-| `auth-cognito` | Full AuthCognito passwordless email-OTP with roles, device management, and Authenticator UI |
-| `nextjs` | Next.js + React starter with AWS Blocks backend integration (SSR + Server Components) |
+## Deploying and going to production
 
-## Development Workflow
+For a deployment, follow the installed app's `AGENTS.md` and confirm the task in `package.json`. For example, `npm run sandbox:deploy` performs a one-shot sandbox deployment in apps that define that task. Deployment needs AWS credentials; local development does not.
 
-After scaffolding, refer to **node_modules/@aws-blocks/blocks/README.md** for the complete development workflow including:
-
-- Core concepts (Architecture, Building Block selection)
-- Project structure and Scope organization
-- Error handling patterns
-- Schema validation
-- Local development
-- Best practices and common mistakes
-- Deployment IAM role setup and security guidance
-
-When implementing a specific Building Block, read its package README for the detailed API reference (e.g., `node_modules/@aws-blocks/bb-kv-store/README.md`). These are the authoritative docs for your installed version.
-
-## Security Considerations
-
-- Use `await auth.requireAuth(context)` in every method that shouldn't be public — ApiNamespace methods are **unauthenticated by default**
-- Use `new AppSetting(scope, id, { secret: true })` for API keys and credentials — never hardcode or use `.env` files
-- Always attach a schema to KVStore/AppSetting that accepts user data — the RPC layer validates structure but not business logic
-- Do not add broad `*` IAM policies — each Building Block already grants least-privilege scoped to its own resources
-- Never change `blockPublicAccess` on FileBucket — serve public files through CloudFront instead
-- Configure `CORS_ALLOWED_ORIGINS` explicitly for production — avoid wildcards
-- For cross-domain deployments, pass `crossDomain: true` to auth constructors (enables `SameSite=None; Secure; Partitioned`)
-- Enable `monitoring: { enabled: true, snsTopicArn: '...' }` on Hosting for production alerts
-- Add WAF and API Gateway throttling via CDK for public-facing apps — not included by default
-- Logger provides serialization safety (circular refs, type coercion) but does NOT redact sensitive content — never pass raw credentials, tokens, or secrets to Logger methods; sanitize context objects before logging
+Before a production deploy, read [references/security.md](references/security.md).

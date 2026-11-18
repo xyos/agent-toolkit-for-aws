@@ -7,13 +7,13 @@ description: Sets up CDK Blocks (formerly AWS Blocks) apps - scaffolds a new app
 
 CDK Blocks is a TypeScript framework for full-stack apps on AWS: the backend lives in one `aws-blocks/` folder built from Building Blocks (`KVStore`, `DistributedTable`, `Auth`, `FileBucket`, ...), runs locally without an AWS account and deploys with the CDK.
 
-The product was named AWS Blocks, and the packages are still published as `@aws-blocks/*`. The CLI inside an app is `cdk-blocks`.
+The packages are published as `@aws-blocks/*`. Run app tasks from the directory containing the app's `package.json`: use `<package manager> run <task>`, with the project's package manager and a task defined in `scripts`. Examples below use npm.
 
 ## Where to go
 
 | The project | Do this |
 |---|---|
-| has an `aws-blocks/` folder and an `AGENTS.md` | Follow that `AGENTS.md` and `npx --no -- cdk-blocks docs`. They match the installed version. Nothing below is needed for feature work. |
+| already has an `aws-blocks/` folder | Follow the app's `AGENTS.md` if present. For feature work, use the [docs for the installed version](#look-up-blocks-docs); don't scaffold again. |
 | is an empty directory (a new app) | [Create an app](#create-an-app) |
 | exists without Blocks (Vite, Next.js, an API, Amplify Gen 2, ...) | [references/existing-project.md](references/existing-project.md) |
 
@@ -27,9 +27,9 @@ npx --yes @aws-blocks/create-blocks-app <directory> --template <template> --yes
 
 `<directory>` is `.` for the current directory, which must be empty (`.git` and editor settings are fine).
 
-The command prints `Installing dependencies...` within a second and then nothing until it ends with `✓ Blocks app created!`, one to three minutes later. `AGENTS.md`, `aws-blocks/` and `test/` exist from that first second; `node_modules`, and with it `npx --no -- cdk-blocks`, only after the last line. If your shell hands the command back still running, read those files, then wait: every check on the install is one call that waits 60 seconds (in Codex, an empty `write_stdin` with `yield_time_ms: 60000`). A shorter poll, `ps` or `sleep` only adds calls.
+Wait for the scaffolder to exit successfully before running app tasks. npm may print progress during `Installing dependencies...`; the scaffolder prints `✓ Blocks app created!` followed by next steps. If the install is still running, you can read the generated files while you wait.
 
-Pick the template from what was asked for:
+Choose a template listed by the scaffolder you are using (`npx --yes @aws-blocks/create-blocks-app --help`). These are fresh-app choices in `@aws-blocks/create-blocks-app` 0.4.0:
 
 | Template | What you get |
 |---|---|
@@ -39,25 +39,41 @@ Pick the template from what was asked for:
 | `react` | Vite + React 19 todo app with sign-in, `DistributedTable` and realtime |
 | `nextjs` | Next.js 16 App Router; Server and Client Components call the backend |
 | `sql` | PostgreSQL backend (`Database`: migrations, foreign keys, transactions) |
-| `auth` | Tour of the `Auth` block: email sign-up with a code, groups, profile |
-| `agent` | An AI `Agent` with a tool, and a canned model for local runs |
-| `cron` | Backend only, scheduled `CronJob`s |
-| `observability` | Backend only: `Logger`, `Metrics`, `Tracer`, a CloudWatch dashboard |
-| `demo` | Larger sample: `Auth`, `KVStore` and `DistributedTable` |
+| `auth-cognito` | Vite frontend with Cognito passwordless email sign-in |
+| `demo` | Larger sample with sign-in, `KVStore` and a priority-sorted todo list |
 | `default` | Used without `--template`: Vite + lit-html with sign-in, `DistributedTable` and realtime |
 
-A later version may have other templates: the scaffolder's `--help` lists them. `backend`, `nextjs`, `sql`, `cron` and `observability` do not list `zod` in `package.json` (the other templates do): run `npm install zod` if your code imports it.
+Use `auth`, `agent`, `cron` or `observability` only if the scaffolder lists it; 0.4.0 does not. If your code imports `zod`, check `package.json` and add it as a direct dependency if missing (`npm install zod` with npm).
 
 ## After scaffolding
 
-1. Read the app's `AGENTS.md` before writing code. It was created during this session, so it is not in your context yet, and it is the guide for this version: how APIs are defined and called, errors, sign-in, tests, deploying. It is about 270 lines (30 KB, 8,000 tokens): read it whole with your file-reading tool, or with an output limit that large. A plain `cat` is cut off. Then read `package.json`, `aws-blocks/index.ts` and `test/e2e.test.ts` in one call: the scripts, the API and the tests you will extend.
-2. Look things up with the app's docs command, which `AGENTS.md` describes, rather than by reading `node_modules`: `npx --no -- cdk-blocks docs <Name>...` (several names fit in one call).
-3. Run it: `npm run dev` (local mocks, no AWS), `npm run test:e2e`, `npm run build`. A test run starts the app's dev server when none is running, calls it and stops it: when it passes, `npm run dev` works, with no need to start it by hand as well. A build or a test run takes 10 to 30 seconds: when one comes back still running, check on it with one call that waits 30 seconds (in Codex, `write_stdin` with `yield_time_ms: 30000`), not every second.
+1. Read the generated `AGENTS.md` in full before writing code. Then read `package.json`, `aws-blocks/index.ts` and `test/e2e.test.ts` for the tasks, API and tests you will extend.
+2. For a local check, run the template's test and build tasks if defined (typically `npm run test:e2e` and `npm run build`). The scaffolded e2e test starts a local server if needed. Start the app's `dev` task separately only if you need a running server.
 
-An app whose `@aws-blocks/blocks` has no `docs` command keeps the same docs in `node_modules/@aws-blocks/blocks/docs/` (`README.md` is the guide, one folder per block).
+## Look up Blocks docs
+
+With `@aws-blocks/blocks` 0.9.0, or whenever the app has no Blocks docs task, read `node_modules/@aws-blocks/blocks/docs/README.md` for the guide and catalog. Follow it to `docs/<block-folder>/README.md` or `API.md` in the same package. No CLI installation is needed.
+
+If the installed version supports docs tasks, check their names in the app's `package.json`. Use the examples below only for the corresponding Blocks scripts; an existing project can assign a different name such as `blocks:docs` to preserve its own `docs` script.
+
+```bash
+npm run docs Auth.protect
+npm run docs:api KVStore
+npm run docs:search "partition key"
+npm run docs -- KVStore --section query
+```
+
+Use positional names and search terms. With npm, put Blocks flags after `--`. For versions that select output by stdout, structured tasks (including docs) produce text in a terminal and JSON when piped or captured:
+
+```bash
+npm run -s docs Auth.protect | jq '{name, kind}'
+npm run -s docs -- KVStore --output text
+```
+
+`-s` suppresses npm's banner, not Blocks output. The second command requests Markdown even when an agent captures stdout. Streaming tasks such as `dev` write logs, not a JSON document.
 
 ## Deploying and going to production
 
-The app's `AGENTS.md` has the deploy commands, how long they take and what they print. Deploying needs AWS credentials; `npm run dev` does not.
+For a deployment, follow the installed app's `AGENTS.md` and confirm the task in `package.json`. For example, `npm run sandbox:deploy` performs a one-shot sandbox deployment in apps that define that task. Deployment needs AWS credentials; local development does not.
 
 Before a production deploy, read [references/security.md](references/security.md).

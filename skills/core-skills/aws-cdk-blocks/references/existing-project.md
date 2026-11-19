@@ -22,7 +22,7 @@ For a project that has a `package.json` and no `cdk-blocks/` folder. Run every c
 
    - The trailing `--yes` is required. Without it the command stops at `Proceed? (y/N)`, and with no terminal attached it exits with status 0 having written nothing.
    - It creates `cdk-blocks/` and `cdk.json`, adds a workspace, dependencies and scripts to `package.json`, appends to `.gitignore`, and installs dependencies. It keeps existing scripts and commits nothing.
-   - Wait for exit status 0. It ends with `✓ AWS Blocks backend added to your project!` and next steps.
+   - Wait for exit status 0. It ends with `✓ AWS CDK Blocks backend added to your project!` and next steps.
    - If it stops with `is a workspace of the npm workspace root`, add the `"workspaces"` line it prints to that root's `package.json` and run the command again.
    - If it stops with `cdk-blocks/ already exists`, CDK Blocks is already there: do not scaffold again.
 

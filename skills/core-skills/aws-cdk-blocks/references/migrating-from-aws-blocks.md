@@ -67,7 +67,7 @@ Installing the renamed packages also installs every release since the app's last
    - In the root `package.json`, change the `"workspaces"` entry `"aws-blocks"` to `"cdk-blocks"`.
    - Change every `from 'aws-blocks'` and `import('aws-blocks')` to `'cdk-blocks'`.
    - Change every remaining `aws-blocks/` path: `cdk.json`, `.gitignore`, `tsconfig*.json`, CI files, the app's `AGENTS.md`, and a `Database` Block's `migrationsPath`. Find them with `git grep -n "aws-blocks" -- . ':!package-lock.json'`, and leave what "Never change" lists.
-   - Change `.blocks-sandbox` to `.cdk-blocks-sandbox` in `.gitignore`, `cdk.json` and CI steps. In a Next.js app, also run `git mv src/app/.blocks-sandbox src/app/.cdk-blocks-sandbox` and change the folder name inside its `route.ts`.
+   - Add `.cdk-blocks-sandbox` to `.gitignore` and keep the `.blocks-sandbox` entry, since the old folder stays on disk. Change `.blocks-sandbox` to `.cdk-blocks-sandbox` in `cdk.json` and CI steps. In a Next.js app, also run `git mv src/app/.blocks-sandbox src/app/.cdk-blocks-sandbox` and change the folder name inside its `route.ts`.
 
    Run `npm install`, then check that `npm run typecheck` and `npm run test:e2e` pass.
 

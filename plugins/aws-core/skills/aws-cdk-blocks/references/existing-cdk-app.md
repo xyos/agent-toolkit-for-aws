@@ -29,6 +29,7 @@ Check first, and ask the user before changing either:
    import { ApiNamespace, Scope } from 'aws-cdk-blocks';
    const scope = new Scope('my-app');
    export const api = new ApiNamespace(scope, 'api', () => ({
+     // Public as written. Require a session on every method that is not meant to be public: see security.md.
      async health() { return { ok: true }; },
    }));
    ```

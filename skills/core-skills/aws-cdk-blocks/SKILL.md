@@ -2,7 +2,7 @@
 name: aws-cdk-blocks
 description: Guides building or extending apps with AWS CDK Blocks (formerly AWS Blocks), an Infrastructure-from-Code framework on CDK. Each Block packages an application capability with its infrastructure, the app code that connects to it, and a local implementation, deployed into the developer's own AWS account. Triggers when the user mentions CDK Blocks or AWS Blocks, or adding capabilities such as agents, sign-in, a database, background jobs or file uploads to an app using CDK; the project has a cdk-blocks/ directory; code imports aws-cdk-blocks, @aws-cdk-blocks or @aws-blocks. Does not apply to requests that name neither Blocks nor CDK. Covers starter templates, composing Blocks into app code (KVStore, Agents, Email, Database, Auth, Realtime, AsyncJob, FileBucket, etc.), running locally, deploying to AWS, Swift, Kotlin and Dart clients, and custom Blocks.
 metadata:
-  version: "3"
+  version: "1"
 ---
 
 # AWS CDK Blocks
@@ -76,6 +76,7 @@ Apps created before the rename have an `aws-blocks/` folder and `@aws-blocks/*` 
    - Always pass a directory. `.` works when the current directory holds nothing but `.git` and editor settings.
    - The command installs dependencies. After `Installing dependencies...` it can run for minutes with little output. Wait for it to exit with status 0; it ends with `✓ Blocks app created!`. Start no app task before that.
    - On `Error: Target directory is not empty and no package.json found.` choose another directory. Do not delete the files it lists.
+   - `npm create @aws-cdk-blocks/blocks-app@latest <directory>` runs the same scaffolder, but `npm create` passes flags to it only after `--`: `-- --template <template>`.
 
 3. Read `AGENTS.md` at the app root from start to end before writing code. It is long: read the whole file, not a preview. Then read `package.json`, `cdk-blocks/index.ts` (the backend) and `test/e2e.test.ts`.
 

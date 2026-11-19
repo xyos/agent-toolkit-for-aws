@@ -12,6 +12,7 @@ npx --yes @aws-cdk-blocks/create-block SearchIndex --yes
 ```
 
 - `--dry-run` prints `Block`, `Package`, `Mode`, `Target` and the planned files, and writes nothing. `--yes` skips the confirmation.
+- `npm create @aws-cdk-blocks/block@latest <ClassName>` runs the same scaffolder, but `npm create` passes flags such as `--dry-run` to it only after `--`.
 - `Mode: customer` applies when the root `package.json` has `workspaces`, as a CDK Blocks app does. The command creates `packages/bb-search-index`, adds it to the root `workspaces`, installs dependencies, then builds and tests the package.
 - `Mode: external` applies anywhere else. The command creates a standalone `./bb-search-index` package to publish, and does not build or test it. Pass `--scope <npm-scope>`, then build and test it with `cd bb-search-index && npm run build && npm test`. An app uses it as a dependency, like any other package.
 - The package name is on the `Package:` line. `--scope <npm-scope>` overrides its scope.
@@ -52,6 +53,7 @@ import { SearchIndex } from '<package>';
 const scope = new Scope('my-app');
 const search = new SearchIndex(scope, 'search');
 export const api = new ApiNamespace(scope, 'api', () => ({
+  // Public as written. Require a session before deploying: see security.md.
   echo: (input: string) => search.echo(input),
 }));
 ```
